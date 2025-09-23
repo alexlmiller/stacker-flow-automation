@@ -1,9 +1,9 @@
 import {
-  StacksDevnet,
-  StacksMainnet,
+  STACKS_DEVNET,
+  STACKS_MAINNET,
+  STACKS_TESTNET,
   StacksNetwork,
   StacksNetworkName,
-  StacksTestnet,
 } from '@stacks/network';
 import { Network as BitcoinNetworkName } from 'bitcoin-address-validation';
 import dotenv from 'dotenv';
@@ -50,12 +50,12 @@ export const BITCOIN_NETWORK_NAME: BitcoinNetworkName =
 const getStacksNetworkInstance = (network: NetworkUsed): StacksNetwork => {
   switch (network) {
     case NetworkUsed.Mainnet:
-      return new StacksMainnet();
+      return STACKS_MAINNET;
     case NetworkUsed.Devnet:
-      return new StacksDevnet();
+      return STACKS_DEVNET;
     case NetworkUsed.Testnet:
     default:
-      return new StacksTestnet();
+      return STACKS_TESTNET;
   }
 };
 
@@ -122,7 +122,9 @@ export const REWARD_INDEXES_API_URL = currentConfig.REWARD_INDEXES_API_URL;
 export const GET_TRANSACTION_API_URL = currentConfig.GET_TRANSACTION_API_URL;
 export const POX_CONTRACT_ADDRESS = currentConfig.POX_CONTRACT_ADDRESS;
 export const POOL_OPERATOR = currentConfig.POOL_OPERATOR;
-export const DATABASE_PATH = process.env.DATABASE_PATH ? `${process.env.DATABASE_PATH}/${currentConfig.DATABASE_FILE}`: `src/database/${currentConfig.DATABASE_FILE}`;
+export const DATABASE_PATH = process.env.DATABASE_PATH
+  ? `${process.env.DATABASE_PATH}/${currentConfig.DATABASE_FILE}`
+  : `src/database/${currentConfig.DATABASE_FILE}`;
 export const POOL_BTC_ADDRESS = currentConfig.POOL_BTC_ADDRESS;
 export const POOL_PRIVATE_KEY = currentConfig.POOL_PRIVATE_KEY;
 export const SIGNER_PRIVATE_KEY = currentConfig.SIGNER_PRIVATE_KEY;

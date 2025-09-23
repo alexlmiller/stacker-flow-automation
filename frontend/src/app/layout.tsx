@@ -25,10 +25,10 @@ export default function RootLayout({
         <ClientOnly>
           <QueryProviders>
             <ThemeProvider>
-                <div className="flex flex-col min-h-screen">
-                  <NavbarSoloStacking />
-                  <main className="flex-grow">{children}</main>
-                </div>
+              <div className="flex flex-col min-h-screen">
+                <NavbarSoloStacking />
+                <main className="flex-grow">{children}</main>
+              </div>
             </ThemeProvider>
           </QueryProviders>
         </ClientOnly>

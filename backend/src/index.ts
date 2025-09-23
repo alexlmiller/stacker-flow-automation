@@ -30,7 +30,8 @@ const main = async () => {
 
       const currentCycle = poxInfo.current_cycle.id;
       const currentBlock = poxInfo.current_burnchain_block_height;
-      const blocksUntilPreparePhase = poxInfo.next_cycle.blocks_until_prepare_phase;
+      const blocksUntilPreparePhase =
+        poxInfo.next_cycle.blocks_until_prepare_phase;
 
       console.log('Current cycle:', currentCycle);
 
@@ -42,29 +43,29 @@ const main = async () => {
         );
 
         await createAndClearTables();
-  
+
         const dbEntries = await removeAnchoredTransactionsFromDatabase();
         const events = await getEvents();
-  
+
         const rewardIndexesMap = await getRewardIndexesMap(currentCycle);
-  
+
         const {
           delegations,
           acceptedDelegations,
           committedDelegations,
           previousDelegations,
         } = await parseEvents(events, rewardIndexesMap);
-  
+
         console.log('Delegations:', delegations);
         console.log('Accepted Delegations:', acceptedDelegations);
         console.log('Committed Delegations:', committedDelegations);
         console.log('Previous Delegations:', previousDelegations);
-  
+
         await saveDelegations(delegations);
         await saveAcceptedDelegations(acceptedDelegations);
         await saveCommittedDelegations(committedDelegations);
         await savePreviousDelegations(previousDelegations);
-  
+
         await checkAndBroadcastTransactions(
           delegations,
           acceptedDelegations,
@@ -73,13 +74,13 @@ const main = async () => {
           currentBlock,
           dbEntries
         );
-  
+
         console.log('Data has been saved successfully.');
       } else {
         console.log(
           "We're in the prepare phase for cycle",
-          currentCycle + 1 + ".",
-          "Waiting for the next cycle to start in order to resume the operations."
+          currentCycle + 1 + '.',
+          'Waiting for the next cycle to start in order to resume the operations.'
         );
 
         await sleep(60000);

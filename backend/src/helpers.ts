@@ -7,8 +7,6 @@ import {
   MAX_CYCLES_FOR_OPERATIONS,
   STACKS_NETWORK_INSTANCE,
   FIRST_POX_4_CYCLE,
-  NETWORK,
-  NetworkUsed,
 } from './consts';
 import {
   fetchData,
@@ -49,7 +47,7 @@ import {
   savePendingTransaction,
   saveRewardIndexes,
 } from './save-data';
-import { getNonce } from '@stacks/transactions';
+import { fetchNonce } from '@stacks/transactions';
 
 export const parseStringToJSON = (input: string) => {
   const parseValue = (value: string): string | null | NonNullable<unknown> => {
@@ -191,7 +189,10 @@ export const getEvents = async () => {
     shouldDeleteEvents === true ? rawEvents : dbEvents.concat(rawEvents);
 
   for (const entry of parsedEvents) {
-    if (entry?.contract_log?.contract_id === POX_CONTRACT_ADDRESS && entry?.contract_log?.value?.repr?.includes(POOL_OPERATOR)) {
+    if (
+      entry?.contract_log?.contract_id === POX_CONTRACT_ADDRESS &&
+      entry?.contract_log?.value?.repr?.includes(POOL_OPERATOR)
+    ) {
       const result = parseStringToJSON(entry.contract_log.value.repr);
       if (result.name == 'delegate-stx') {
         events.push({
@@ -993,14 +994,14 @@ export const checkAndBroadcastTransactions = async (
   currentBlock: number,
   dbEntries: any
 ) => {
-  const nonce = await getNonce(
-    POOL_OPERATOR as string,
-    STACKS_NETWORK_INSTANCE
-  );
-  const poolClient = new StackingClient(
-    POOL_OPERATOR as string,
-    STACKS_NETWORK_INSTANCE
-  );
+  const nonce = await fetchNonce({
+    address: POOL_OPERATOR as string,
+    network: STACKS_NETWORK_INSTANCE,
+  });
+  const poolClient = new StackingClient({
+    address: POOL_OPERATOR as string,
+    network: STACKS_NETWORK_INSTANCE,
+  });
 
   delegations.forEach((value: any, key: any) => {
     if (value.endCycle !== null && value.endCycle <= currentCycle) {

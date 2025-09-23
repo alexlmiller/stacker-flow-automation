@@ -19,7 +19,7 @@ export const fetchData = async (offset: number, retry = 0): Promise<any> => {
   try {
     if (retry > 6) {
       return null;
-    };
+    }
 
     const response = await axios.get(API_URL, {
       params: {
@@ -49,7 +49,7 @@ export const fetchPoxInfo = async (retry = 0): Promise<any> => {
   try {
     if (retry > 6) {
       return null;
-    };
+    }
 
     const response = await axios.get(POX_INFO_URL);
 
@@ -72,12 +72,12 @@ export const fetchPoxInfo = async (retry = 0): Promise<any> => {
 export const fetchRewardCycleIndex = async (
   rewardCycle: number,
   index: number,
-  retry = 0,
+  retry = 0
 ): Promise<any> => {
   try {
     if (retry > 6) {
       return null;
-    };
+    }
 
     const data = cvToHex(
       tupleCV({ 'reward-cycle': uintCV(rewardCycle), index: uintCV(index) })
@@ -105,13 +105,18 @@ export const fetchRewardCycleIndex = async (
   }
 };
 
-export const fetchTransactionInfo = async (txid: string, retry = 0): Promise<any> => {
+export const fetchTransactionInfo = async (
+  txid: string,
+  retry = 0
+): Promise<any> => {
   try {
     if (retry > 6) {
       return null;
-    };
+    }
 
-    const response = await axios.get(GET_TRANSACTION_API_URL(txid.startsWith('0x') ? txid : `0x${txid}`));
+    const response = await axios.get(
+      GET_TRANSACTION_API_URL(txid.startsWith('0x') ? txid : `0x${txid}`)
+    );
 
     return response.data;
   } catch (error: any) {

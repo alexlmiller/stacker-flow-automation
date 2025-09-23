@@ -4,7 +4,6 @@ import {
   POOL_PRIVATE_KEY,
   SIGNER_PRIVATE_KEY,
 } from './consts';
-import { createStacksPrivateKey } from '@stacks/transactions';
 import secp256k1 from 'secp256k1';
 
 export const acceptDelegation = async (
@@ -143,7 +142,7 @@ export const generateSignature = async (
     poxAddress,
     rewardCycle,
     period,
-    signerPrivateKey: createStacksPrivateKey(SIGNER_PRIVATE_KEY as string),
+    signerPrivateKey: SIGNER_PRIVATE_KEY as string,
     maxAmount,
     authId,
   });
