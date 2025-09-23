@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
-import AuthContextProvider from "./contexts/AuthContext";
 import { NavbarSoloStacking } from "./components/Navbar/Navbar";
 import "./globals.css";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -26,12 +25,10 @@ export default function RootLayout({
         <ClientOnly>
           <QueryProviders>
             <ThemeProvider>
-              <AuthContextProvider>
                 <div className="flex flex-col min-h-screen">
                   <NavbarSoloStacking />
                   <main className="flex-grow">{children}</main>
                 </div>
-              </AuthContextProvider>
             </ThemeProvider>
           </QueryProviders>
         </ClientOnly>
