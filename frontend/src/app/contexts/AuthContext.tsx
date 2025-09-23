@@ -2,7 +2,7 @@
 import { AppConfig, showConnect, UserSession } from "@stacks/connect";
 import { createContext, ReactNode } from "react";
 
-export type Network = "mainnet" | "nakamoto" | "testnet";
+export type Network = "mainnet" | "testnet";
 
 interface UserInterface {
   stxAddress: {

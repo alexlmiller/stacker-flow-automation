@@ -1,7 +1,6 @@
 export enum NetworkUsed {
   Mainnet = "mainnet",
   Testnet = "testnet",
-  NakamotoTestnet = "nakamotoTestnet",
   Devnet = "devnet",
 }
 
@@ -42,17 +41,6 @@ const API_CONFIG = {
     },
     GET_STACKS_ADDRESS_EXPLORER_URL(address: string): string {
       return `https://explorer.hiro.so/address/${address}?chain=testnet`;
-    },
-  },
-  [NetworkUsed.NakamotoTestnet]: {
-    GET_TRANSACTION_EXPLORER_URL(txid: string): string {
-      return `https://explorer.hiro.so/txid/${txid}?chain=testnet&api=https://api.nakamoto.testnet.hiro.so`;
-    },
-    GET_BITCOIN_ADDRESS_EXPLORER_URL(address: string): string {
-      return `https://mempool.space/testnet/address/${address}`; // TODO: replace this
-    },
-    GET_STACKS_ADDRESS_EXPLORER_URL(address: string): string {
-      return `https://explorer.hiro.so/address/${address}?chain=testnet&api=https://api.nakamoto.testnet.hiro.so`;
     },
   },
   [NetworkUsed.Devnet]: {
