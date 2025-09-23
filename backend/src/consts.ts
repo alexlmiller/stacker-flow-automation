@@ -12,7 +12,6 @@ dotenv.config();
 export enum NetworkUsed {
   Mainnet = 'mainnet',
   Testnet = 'testnet',
-  NakamotoTestnet = 'nakamotoTestnet',
   Devnet = 'devnet',
 }
 
@@ -25,7 +24,6 @@ const getStacksNetworkName = (network: NetworkUsed): StacksNetworkName => {
       return 'mainnet';
     case NetworkUsed.Devnet:
       return 'devnet';
-    case NetworkUsed.NakamotoTestnet:
     case NetworkUsed.Testnet:
     default:
       return 'testnet';
@@ -37,7 +35,6 @@ const getBitcoinNetworkName = (network: NetworkUsed): BitcoinNetworkName => {
     case NetworkUsed.Mainnet:
       return BitcoinNetworkName.mainnet;
     case NetworkUsed.Devnet:
-    case NetworkUsed.NakamotoTestnet:
     case NetworkUsed.Testnet:
     default:
       return BitcoinNetworkName.testnet;
@@ -56,8 +53,6 @@ const getStacksNetworkInstance = (network: NetworkUsed): StacksNetwork => {
       return new StacksMainnet();
     case NetworkUsed.Devnet:
       return new StacksDevnet();
-    case NetworkUsed.NakamotoTestnet:
-      return new StacksTestnet({ url: 'https://api.nakamoto.testnet.hiro.so' });
     case NetworkUsed.Testnet:
     default:
       return new StacksTestnet();
@@ -99,22 +94,6 @@ const API_CONFIG = {
     POOL_PRIVATE_KEY: process.env.POOL_PRIVATE_KEY,
     SIGNER_PRIVATE_KEY: process.env.SIGNER_PRIVATE_KEY,
     DATABASE_FILE: 'testnet-pox-events.sqlite',
-    FIRST_POX_4_CYCLE: 1,
-  },
-  [NetworkUsed.NakamotoTestnet]: {
-    API_URL: 'https://api.nakamoto.testnet.hiro.so/extended/v1/tx/events',
-    POX_INFO_URL: 'https://api.nakamoto.testnet.hiro.so/v2/pox',
-    REWARD_INDEXES_API_URL:
-      'https://api.nakamoto.testnet.hiro.so/v2/map_entry/ST000000000000000000002AMW42H/pox-4/reward-cycle-pox-address-list',
-    GET_TRANSACTION_API_URL(txid: string): string {
-      return `https://api.nakamoto.testnet.hiro.so/extended/v1/tx/${txid}`;
-    },
-    POX_CONTRACT_ADDRESS: 'ST000000000000000000002AMW42H.pox-4',
-    POOL_OPERATOR: process.env.POOL_OPERATOR,
-    POOL_BTC_ADDRESS: process.env.POOL_BTC_ADDRESS,
-    POOL_PRIVATE_KEY: process.env.POOL_PRIVATE_KEY,
-    SIGNER_PRIVATE_KEY: process.env.SIGNER_PRIVATE_KEY,
-    DATABASE_FILE: 'nakamoto-testnet-pox-events.sqlite',
     FIRST_POX_4_CYCLE: 1,
   },
   [NetworkUsed.Devnet]: {

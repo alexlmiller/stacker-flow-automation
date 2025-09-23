@@ -14,7 +14,6 @@ const isValidStacksNetwork = (network: string) => {
   switch (network) {
     case 'mainnet':
     case 'testnet':
-    case 'nakamotoTestnet':
     case 'devnet':
       return true;
     default:

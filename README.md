@@ -58,7 +58,6 @@ The `backend` folder contains an `.env.example` file that you have to modify wit
 # Possible options:
 #   - mainnet
 #   - testnet
-#   - nakamotoTestnet
 #   - devnet
 NETWORK="devnet"
 
@@ -139,7 +138,6 @@ The `frontend` folder contains an `.env.example` file that you have to modify wi
 # Possible options:
 #   - mainnet
 #   - testnet
-#   - nakamotoTestnet
 #   - devnet
 NEXT_PUBLIC_NETWORK="devnet"
 
