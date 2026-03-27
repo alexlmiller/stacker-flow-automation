@@ -7,6 +7,10 @@ import {
   REWARD_INDEXES_API_URL,
   GET_TRANSACTION_API_URL,
 } from './consts';
+
+if (process.env.HIRO_API_KEY) {
+  axios.defaults.headers.common['x-hiro-api-key'] = process.env.HIRO_API_KEY;
+}
 import {
   hexToCV,
   cvToHex,
