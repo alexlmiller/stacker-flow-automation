@@ -11,6 +11,7 @@ import {
 if (process.env.HIRO_API_KEY) {
   axios.defaults.headers.common['x-hiro-api-key'] = process.env.HIRO_API_KEY;
 }
+axios.defaults.timeout = 30000; // 30s timeout — Hiro API can hang on expensive queries
 import {
   hexToCV,
   cvToHex,
