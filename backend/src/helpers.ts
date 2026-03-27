@@ -149,6 +149,8 @@ export const getEvents = async () => {
   let moreData = true;
   let shouldDeleteEvents = true;
 
+  const MAX_FETCH_OFFSET = parseInt(process.env.MAX_FETCH_OFFSET || '50000', 10);
+
   const rawEvents = [];
   const events = [];
 
@@ -157,6 +159,12 @@ export const getEvents = async () => {
   const lastDbEvent = isDbEventsEmpty ? null : dbEvents[dbEvents.length - 1];
 
   while (moreData) {
+    if (offset >= MAX_FETCH_OFFSET) {
+      console.log(`Reached MAX_FETCH_OFFSET (${MAX_FETCH_OFFSET}), stopping event fetch.`);
+      moreData = false;
+      break;
+    }
+
     const data = await fetchData(offset);
 
     if (data && data.length > 0) {
