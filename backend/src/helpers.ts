@@ -158,16 +158,14 @@ export const getEvents = async () => {
   const isDbEventsEmpty = dbEvents.length === 0;
   const lastDbEvent = isDbEventsEmpty ? null : dbEvents[dbEvents.length - 1];
 
-  while (moreData) {
-    if (offset >= MAX_FETCH_OFFSET) {
-      console.log(`Reached MAX_FETCH_OFFSET (${MAX_FETCH_OFFSET}), stopping event fetch.`);
-      moreData = false;
-      break;
-    }
+  let consecutiveFailures = 0;
+  const MAX_CONSECUTIVE_FAILURES = 3;
 
+  while (moreData) {
     const data = await fetchData(offset);
 
     if (data && data.length > 0) {
+      consecutiveFailures = 0;
       for (const entry of data) {
         if (isDbEventsEmpty) {
           rawEvents.push(entry);
@@ -185,7 +183,21 @@ export const getEvents = async () => {
         }
       }
       offset += LIMIT;
+      if (offset % 10000 === 0) {
+        console.log(`Fetched ${offset} events so far...`);
+      }
+    } else if (data === null) {
+      // Page timed out after retries — skip it and keep going
+      consecutiveFailures++;
+      console.log(`Page at offset ${offset} failed, skipping (${consecutiveFailures}/${MAX_CONSECUTIVE_FAILURES} consecutive failures)`);
+      if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+        console.log(`${MAX_CONSECUTIVE_FAILURES} consecutive page failures, stopping fetch.`);
+        moreData = false;
+      } else {
+        offset += LIMIT;
+      }
     } else {
+      // Empty result — no more events
       moreData = false;
     }
   }
