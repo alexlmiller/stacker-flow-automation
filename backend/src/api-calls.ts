@@ -6,6 +6,7 @@ import {
   POX_INFO_URL,
   REWARD_INDEXES_API_URL,
   GET_TRANSACTION_API_URL,
+  GET_ADDRESS_TRANSACTIONS_API_URL,
 } from './consts';
 
 if (process.env.HIRO_API_KEY) {
@@ -105,6 +106,32 @@ export const fetchRewardCycleIndex = async (
       }
     } else {
       console.error(`Error fetching reward cycle index info: ${error}`);
+    }
+    return null;
+  }
+};
+
+export const fetchAddressTransactions = async (address: string, limit = 50, offset = 0, retry = 0): Promise<any> => {
+  try {
+    if (retry > 6) {
+      return null;
+    }
+
+    const response = await axios.get(GET_ADDRESS_TRANSACTIONS_API_URL(address), {
+      params: { limit, offset },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    if (error.response) {
+      if (error.response.status !== 404) {
+        await new Promise((resolve) => setTimeout(resolve, 10000));
+        return fetchAddressTransactions(address, limit, offset, retry + 1);
+      } else {
+        console.error(`Error fetching address transactions: ${error}`);
+      }
+    } else {
+      console.error(`Error fetching address transactions: ${error}`);
     }
     return null;
   }

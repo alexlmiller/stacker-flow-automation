@@ -71,6 +71,9 @@ const API_CONFIG = {
     GET_TRANSACTION_API_URL(txid: string): string {
       return `https://api.mainnet.hiro.so/extended/v1/tx/${txid}`;
     },
+    GET_ADDRESS_TRANSACTIONS_API_URL(address: string): string {
+      return `https://api.mainnet.hiro.so/extended/v1/address/${address}/transactions`;
+    },
     POX_CONTRACT_ADDRESS: 'SP000000000000000000002Q6VF78.pox-4',
     POOL_OPERATOR: process.env.POOL_OPERATOR,
     // POOL_OPERATOR: 'SP2TXK60BBCSNDE1GNNMHM89KY6ZY4ZHTBTJP8X9V',
@@ -88,6 +91,9 @@ const API_CONFIG = {
     GET_TRANSACTION_API_URL(txid: string): string {
       return `https://api.testnet.hiro.so/extended/v1/tx/${txid}`;
     },
+    GET_ADDRESS_TRANSACTIONS_API_URL(address: string): string {
+      return `https://api.testnet.hiro.so/extended/v1/address/${address}/transactions`;
+    },
     POX_CONTRACT_ADDRESS: 'ST000000000000000000002AMW42H.pox-4',
     POOL_OPERATOR: process.env.POOL_OPERATOR,
     POOL_BTC_ADDRESS: process.env.POOL_BTC_ADDRESS,
@@ -103,6 +109,9 @@ const API_CONFIG = {
       'http://localhost:3999/v2/map_entry/ST000000000000000000002AMW42H/pox-4/reward-cycle-pox-address-list',
     GET_TRANSACTION_API_URL(txid: string): string {
       return `http://localhost:3999/extended/v1/tx/${txid}`;
+    },
+    GET_ADDRESS_TRANSACTIONS_API_URL(address: string): string {
+      return `http://localhost:3999/extended/v1/address/${address}/transactions`;
     },
     POX_CONTRACT_ADDRESS: 'ST000000000000000000002AMW42H.pox-4',
     POOL_OPERATOR: process.env.POOL_OPERATOR,
@@ -120,6 +129,7 @@ export const API_URL = currentConfig.API_URL;
 export const POX_INFO_URL = currentConfig.POX_INFO_URL;
 export const REWARD_INDEXES_API_URL = currentConfig.REWARD_INDEXES_API_URL;
 export const GET_TRANSACTION_API_URL = currentConfig.GET_TRANSACTION_API_URL;
+export const GET_ADDRESS_TRANSACTIONS_API_URL = currentConfig.GET_ADDRESS_TRANSACTIONS_API_URL;
 export const POX_CONTRACT_ADDRESS = currentConfig.POX_CONTRACT_ADDRESS;
 export const POOL_OPERATOR = currentConfig.POOL_OPERATOR;
 export const DATABASE_PATH = process.env.DATABASE_PATH ? `${process.env.DATABASE_PATH}/${currentConfig.DATABASE_FILE}`: `src/database/${currentConfig.DATABASE_FILE}`;

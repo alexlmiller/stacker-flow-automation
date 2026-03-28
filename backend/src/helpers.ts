@@ -12,6 +12,7 @@ import {
 } from './consts';
 import {
   fetchData,
+  fetchAddressTransactions,
   fetchRewardCycleIndex,
   fetchTransactionInfo,
 } from './api-calls';
@@ -144,73 +145,113 @@ export const parseStringToJSON = (input: string) => {
   return parseMain(input);
 };
 
-export const getEvents = async () => {
+// Fetch all transactions for an address, paginating through all pages
+const fetchAllAddressTransactions = async (address: string): Promise<any[]> => {
+  const allTxs: any[] = [];
   let offset = 0;
-  let moreData = true;
-  let shouldDeleteEvents = true;
+  const limit = 50;
 
-  const MAX_FETCH_OFFSET = parseInt(process.env.MAX_FETCH_OFFSET || '50000', 10);
+  while (true) {
+    const data = await fetchAddressTransactions(address, limit, offset);
+    if (!data || !data.results || data.results.length === 0) break;
+    allTxs.push(...data.results);
+    if (allTxs.length >= data.total) break;
+    offset += limit;
+  }
 
-  const rawEvents = [];
-  const events = [];
+  return allTxs;
+};
 
-  const dbEvents = await getDatabaseEvents();
-  const isDbEventsEmpty = dbEvents.length === 0;
-  const lastDbEvent = isDbEventsEmpty ? null : dbEvents[dbEvents.length - 1];
+export const getEvents = async () => {
+  const rawEvents: any[] = [];
+  const events: any[] = [];
 
-  let consecutiveFailures = 0;
-  const MAX_CONSECUTIVE_FAILURES = 3;
+  console.log('Fetching pool operator transactions...');
 
-  while (moreData) {
-    const data = await fetchData(offset);
+  // Step 1: Get all pool operator transactions
+  const poolTxs = await fetchAllAddressTransactions(POOL_OPERATOR as string);
+  console.log(`Found ${poolTxs.length} pool operator transactions`);
 
-    if (data && data.length > 0) {
-      consecutiveFailures = 0;
-      for (const entry of data) {
-        if (isDbEventsEmpty) {
-          rawEvents.push(entry);
-        } else {
-          const lastDbEventString = JSON.stringify(lastDbEvent);
-          const entryString = JSON.stringify(entry);
+  // Step 2: Collect stacker addresses from pool's delegate-stack-* calls
+  // and fetch events from each successful pool tx
+  const stackerAddresses = new Set<string>();
+  const successfulPoxTxIds: string[] = [];
 
-          if (lastDbEventString !== entryString) {
-            rawEvents.push(entry);
-          } else {
-            shouldDeleteEvents = false;
-            moreData = false;
-            break;
-          }
-        }
+  for (const tx of poolTxs) {
+    if (tx.tx_status !== 'success' || tx.tx_type !== 'contract_call') continue;
+    const cc = tx.contract_call;
+    if (!cc || !cc.contract_id?.includes('pox')) continue;
+
+    successfulPoxTxIds.push(tx.tx_id);
+
+    // Extract stacker address from delegate-stack-* calls (first arg)
+    if (['delegate-stack-stx', 'delegate-stack-extend', 'delegate-stack-increase'].includes(cc.function_name)) {
+      const stackerArg = cc.function_args?.[0]?.repr;
+      if (stackerArg) {
+        stackerAddresses.add(stackerArg.replace(/^'/, ''));
       }
-      offset += LIMIT;
-      if (offset % 10000 === 0) {
-        console.log(`Fetched ${offset} events so far...`);
-      }
-    } else if (data === null) {
-      // Page timed out after retries — skip it and keep going
-      consecutiveFailures++;
-      console.log(`Page at offset ${offset} failed, skipping (${consecutiveFailures}/${MAX_CONSECUTIVE_FAILURES} consecutive failures)`);
-      if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
-        console.log(`${MAX_CONSECUTIVE_FAILURES} consecutive page failures, stopping fetch.`);
-        moreData = false;
-      } else {
-        offset += LIMIT;
-      }
-    } else {
-      // Empty result — no more events
-      moreData = false;
     }
   }
 
-  if (rawEvents.length === 0) {
-    shouldDeleteEvents = false;
+  console.log(`Found ${successfulPoxTxIds.length} successful PoX transactions, ${stackerAddresses.size} unique stackers`);
+
+  // Step 3: Fetch events from each successful pool tx
+  for (let i = 0; i < successfulPoxTxIds.length; i++) {
+    const txData = await fetchTransactionInfo(successfulPoxTxIds[i]);
+    if (txData?.events) {
+      for (const event of txData.events) {
+        if (event.event_type === 'smart_contract_log' &&
+            event.contract_log?.contract_id === POX_CONTRACT_ADDRESS) {
+          rawEvents.push(event);
+        }
+      }
+    }
+    if ((i + 1) % 50 === 0) {
+      console.log(`Fetched events from ${i + 1}/${successfulPoxTxIds.length} pool transactions...`);
+    }
   }
 
-  rawEvents.reverse();
-  const parsedEvents =
-    shouldDeleteEvents === true ? rawEvents : dbEvents.concat(rawEvents);
+  console.log(`Fetched ${rawEvents.length} events from pool transactions`);
 
-  for (const entry of parsedEvents) {
+  // Step 4: Fetch each stacker's delegate-stx and revoke-delegate-stx events
+  for (const stacker of stackerAddresses) {
+    console.log(`Fetching transactions for stacker ${stacker}...`);
+    const stackerTxs = await fetchAllAddressTransactions(stacker);
+
+    for (const tx of stackerTxs) {
+      if (tx.tx_status !== 'success' || tx.tx_type !== 'contract_call') continue;
+      const cc = tx.contract_call;
+      if (!cc?.contract_id?.includes('pox')) continue;
+      if (!['delegate-stx', 'revoke-delegate-stx'].includes(cc.function_name)) continue;
+
+      const txData = await fetchTransactionInfo(tx.tx_id);
+      if (txData?.events) {
+        for (const event of txData.events) {
+          if (event.event_type === 'smart_contract_log' &&
+              event.contract_log?.contract_id === POX_CONTRACT_ADDRESS &&
+              event.contract_log?.value?.repr?.includes(POOL_OPERATOR as string)) {
+            rawEvents.push(event);
+          }
+        }
+      }
+    }
+  }
+
+  console.log(`Total raw events collected: ${rawEvents.length}`);
+
+  // Sort events chronologically by block height (oldest first)
+  rawEvents.sort((a: any, b: any) => {
+    const blockA = a.tx_id || '';
+    const blockB = b.tx_id || '';
+    return blockA.localeCompare(blockB);
+  });
+
+  // Clear and re-save events to DB
+  await deleteEvents();
+  await saveEvents(rawEvents);
+
+  // Parse events into structured format (same logic as original)
+  for (const entry of rawEvents) {
     if (entry?.contract_log?.contract_id === POX_CONTRACT_ADDRESS && entry?.contract_log?.value?.repr?.includes(POOL_OPERATOR)) {
       const result = parseStringToJSON(entry.contract_log.value.repr);
       if (result.name == 'delegate-stx') {
@@ -351,12 +392,6 @@ export const getEvents = async () => {
       }
     }
   }
-
-  if (shouldDeleteEvents === true) {
-    await deleteEvents();
-  }
-
-  await saveEvents(rawEvents);
 
   return events;
 };
